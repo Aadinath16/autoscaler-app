@@ -141,6 +141,31 @@ jobs:
                 sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|g" k8s/deployment.yaml
 
 
+            - name: Whitelist GitHub Runner IP
+              id: whitelist-ip
+              run: |
+                RUNNER_IP=$(curl -s https://ifconfig.me)
+
+                echo "Runner IP: $RUNNER_IP"
+
+                EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
+                  --region $CLUSTER_LOCATION \
+                  --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
+                  | paste -sd "," -)
+
+                echo "Existing ranges: $EXISTING_RANGES"
+
+                UPDATED_RANGES="${EXISTING_RANGES},${RUNNER_IP}/32"
+
+                echo "UPDATED_RANGES=$UPDATED_RANGES" >> $GITHUB_ENV
+                echo "RUNNER_IP=$RUNNER_IP" >> $GITHUB_ENV
+
+                gcloud container clusters update $CLUSTER_NAME \
+                  --region $CLUSTER_LOCATION \
+                  --enable-master-authorized-networks \
+                  --master-authorized-networks $UPDATED_RANGES
+
+
             ############################################################
             # DEPLOY TO GKE
             ############################################################
@@ -148,10 +173,24 @@ jobs:
               run: |
                 kubectl apply -f k8s/
 
-
             ############################################################
             # VERIFY ROLLING UPDATE
             ############################################################
             - name: Verify Deployment
               run: |
                 kubectl rollout status deployment/autoscaler-app
+
+            - name: Remove GitHub Runner IP
+              if: always()
+              run: |
+                EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
+                  --region $CLUSTER_LOCATION \
+                  --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
+                  | tr '\n' ',')
+
+                CLEAN_RANGES=$(echo $EXISTING_RANGES | sed "s/${RUNNER_IP}\/32,//g" | sed "s/,${RUNNER_IP}\/32//g")
+
+                gcloud container clusters update $CLUSTER_NAME \
+                  --region $CLUSTER_LOCATION \
+                  --enable-master-authorized-networks \
+                  --master-authorized-networks $CLEAN_RANGES
