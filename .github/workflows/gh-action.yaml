@@ -186,7 +186,7 @@ jobs:
                 EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
                   --region $CLUSTER_LOCATION \
                   --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
-                  | tr '\n' ',' | sed 's/,$//')
+                  | tr '\n' ',' | tr ';' ',' | sed 's/,$//')
 
                 CLEAN_RANGES=$(echo $EXISTING_RANGES | sed "s/,${RUNNER_IP}\/32//g" | sed "s/${RUNNER_IP}\/32,//g")
 
