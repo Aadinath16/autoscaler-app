@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: us-docker.pkg.dev/gcp-test-1618-dev/flask-app-repo/autoscaler:latest
+        image: IMAGE_PLACEHOLDER
         ports:
         - containerPort: 5000
 
