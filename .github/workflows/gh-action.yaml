@@ -14,8 +14,8 @@ env:
   GAR_LOCATION: us
   REPO_NAME: flask-app-repo
   IMAGE_NAME: autoscaler-app
-  CLUSTER_NAME: gke
-  CLUSTER_LOCATION: us-central1-c
+  CLUSTER_NAME: gke-dev
+  CLUSTER_LOCATION: us-central1
     
 jobs:
     build:
