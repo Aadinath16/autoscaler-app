@@ -144,14 +144,14 @@ jobs:
             - name: Whitelist GitHub Runner IP
               id: whitelist-ip
               run: |
-                RUNNER_IP=$(curl -s https://ifconfig.me)
+                RUNNER_IP=$(curl -s https://api.ipify.org)
 
                 echo "Runner IP: $RUNNER_IP"
 
                 EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
                   --region $CLUSTER_LOCATION \
                   --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
-                  | paste -sd "," -)
+                  | tr '\n' ',' | sed 's/,$//')
 
                 echo "Existing ranges: $EXISTING_RANGES"
 
@@ -163,7 +163,7 @@ jobs:
                 gcloud container clusters update $CLUSTER_NAME \
                   --region $CLUSTER_LOCATION \
                   --enable-master-authorized-networks \
-                  --master-authorized-networks $UPDATED_RANGES
+                  --master-authorized-networks "$UPDATED_RANGES"
 
 
             ############################################################
@@ -186,11 +186,11 @@ jobs:
                 EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
                   --region $CLUSTER_LOCATION \
                   --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
-                  | tr '\n' ',')
+                  | tr '\n' ',' | sed 's/,$//')
 
-                CLEAN_RANGES=$(echo $EXISTING_RANGES | sed "s/${RUNNER_IP}\/32,//g" | sed "s/,${RUNNER_IP}\/32//g")
+                CLEAN_RANGES=$(echo $EXISTING_RANGES | sed "s/,${RUNNER_IP}\/32//g" | sed "s/${RUNNER_IP}\/32,//g")
 
                 gcloud container clusters update $CLUSTER_NAME \
                   --region $CLUSTER_LOCATION \
                   --enable-master-authorized-networks \
-                  --master-authorized-networks $CLEAN_RANGES
+                  --master-authorized-networks "$CLEAN_RANGES"
