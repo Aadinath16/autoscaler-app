@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Autoscaler POC</title>
+</head>
+
+<body>
+
+<h2>Kubernetes Autoscaler Demo</h2>
+
+<button onclick="callApi('/health')">Health Check</button>
+<br><br>
+
+<button onclick="callApi('/cpu-load')">
+Trigger CPU Load (HPA)
+</button>
+<br><br>
+
+<button onclick="callApi('/memory-load')">
+Trigger Memory Load (VPA)
+</button>
+<br><br>
+
+<button onclick="callApi('/long-request')">
+Trigger Long Request
+</button>
+
+<h3>Response:</h3>
+<pre id="result"></pre>
+
+<script>
+
+async function callApi(endpoint){
+
+const res = await fetch(endpoint)
+
+const data = await res.json()
+
+document.getElementById("result").innerText =
+JSON.stringify(data,null,2)
+
+}
+
+</script>
+
+</body>
+</html>
