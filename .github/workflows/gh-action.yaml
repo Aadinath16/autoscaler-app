@@ -149,9 +149,9 @@ jobs:
                 echo "Runner IP: $RUNNER_IP"
 
                 EXISTING_RANGES=$(gcloud container clusters describe $CLUSTER_NAME \
-                  --region $CLUSTER_LOCATION \
-                  --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
-                  | tr '\n' ',' | sed 's/,$//')
+                      --region $CLUSTER_LOCATION \
+                      --format="value(masterAuthorizedNetworksConfig.cidrBlocks[].cidrBlock)" \
+                      | tr '\n' ',' | tr ';' ',' | sed 's/,$//')
 
                 echo "Existing ranges: $EXISTING_RANGES"
 
